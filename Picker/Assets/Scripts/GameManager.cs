@@ -20,12 +20,19 @@ public class GameManager : MonoBehaviour
     public bool isPickerMoving;
     
     int BallCount;
+    int SumofCheckPoints;
+    int standCheckPointIndex;
+    
     [SerializeField] private List<BallAreaTechnic> ballAreaTechnics = new List<BallAreaTechnic>();    
-    // Start is called before the first frame update
+
     void Start()
     {
         isPickerMoving = true;
-        ballAreaTechnics[0].numText.text = BallCount +"/"+ ballAreaTechnics[0].NeededBall; 
+        SumofCheckPoints = ballAreaTechnics.Count -1;
+        for (int i =0; i< ballAreaTechnics.Count ; i++)
+        {
+            ballAreaTechnics[i].numText.text = BallCount +"/"+ ballAreaTechnics[i].NeededBall;
+        }
     }
 
     // Update is called once per frame
@@ -35,7 +42,7 @@ public class GameManager : MonoBehaviour
         {
             Picker.transform.position += 5f * Time.deltaTime* Picker.transform.forward;
             if(Time.timeScale != 0f)
-            {
+            { 
                 if(Input.GetKey(KeyCode.RightArrow) && Picker.transform.position.x < 1.3f)
                 {
                     Picker.transform.position = Vector3.Lerp(Picker.transform.position, new Vector3(Picker.transform.position.x +.1f,
@@ -65,18 +72,28 @@ public class GameManager : MonoBehaviour
     public void CountBalls()
     {
         BallCount++;
-        ballAreaTechnics[0].numText.text = BallCount +"/" + ballAreaTechnics[0].NeededBall;
+        ballAreaTechnics[standCheckPointIndex].numText.text = BallCount +"/" + ballAreaTechnics[standCheckPointIndex].NeededBall;
     }
     void StageControl()
     {
-        if(BallCount >= ballAreaTechnics[0].NeededBall)
+        if(BallCount >= ballAreaTechnics[standCheckPointIndex].NeededBall)
         {
-            Debug.Log("Win");
-            ballAreaTechnics[0].BallAreaLift.Play("Lift");
-            foreach(var item in ballAreaTechnics[0].Balls)
+            ballAreaTechnics[standCheckPointIndex].BallAreaLift.Play("Lift");
+            foreach(var item in ballAreaTechnics[standCheckPointIndex].Balls)
             {
                 item.SetActive(false);
             }
+            if(standCheckPointIndex == SumofCheckPoints)
+            {
+                Debug.Log("Game Is Over.");
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                standCheckPointIndex++;
+                BallCount =0;
+            }
+            BallCount=0;
         }
         else
         {
