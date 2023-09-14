@@ -6,6 +6,7 @@ TagManager:
   tags:
   - PickerTrigger
   - BallCounter
+  - BallControl
   layers:
   - Default
   - TransparentFX

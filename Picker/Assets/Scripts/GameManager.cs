@@ -16,12 +16,16 @@ public class BallAreaTechnic
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameObject Picker;
+    [SerializeField] private GameObject[] PickerArms;
+    [SerializeField] private GameObject[] BonusBalls;
+    bool isHaveArm;
     [SerializeField] private GameObject BallControlObject;
     public bool isPickerMoving;
     
     int BallCount;
     int SumofCheckPoints;
     int standCheckPointIndex;
+    float FingerPosX;
     
     [SerializeField] private List<BallAreaTechnic> ballAreaTechnics = new List<BallAreaTechnic>();    
 
@@ -43,21 +47,35 @@ public class GameManager : MonoBehaviour
             Picker.transform.position += 5f * Time.deltaTime* Picker.transform.forward;
             if(Time.timeScale != 0f)
             { 
-                if(Input.GetKey(KeyCode.RightArrow) && Picker.transform.position.x < 1.3f)
+                if(Input.touchCount > 0)
                 {
-                    Picker.transform.position = Vector3.Lerp(Picker.transform.position, new Vector3(Picker.transform.position.x +.1f,
-                        Picker.transform.position.y,Picker.transform.position.z),.50f);
-                }
-                if(Input.GetKey(KeyCode.LeftArrow) && Picker.transform.position.x > -1.3f)
-                {
-                    Picker.transform.position = Vector3.Lerp(Picker.transform.position, new Vector3(Picker.transform.position.x -.1f,
-                        Picker.transform.position.y,Picker.transform.position.z),.50f);
+                    Touch touch = Input.GetTouch(0);
+                    Vector3 touchPosition = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x,touch.position.y
+                    ,10f));
+                    switch (touch.phase)
+                    {
+                        case TouchPhase.Began:
+                            FingerPosX = touchPosition.x - Picker.transform.position.x;
+                            break;
+                        case TouchPhase.Moved:
+                            if(touchPosition.x - FingerPosX > -1.3f || touchPosition.x-FingerPosX < 1.3f)
+                            {
+                                Picker.transform.position = Vector3.Lerp(Picker.transform.position,new Vector3(touchPosition.x - FingerPosX, 
+                                    Picker.transform.position.y,Picker.transform.position.z),3f);
+                            }
+                            break;        
+                    }
                 }
             }
         }
     }
     public void LimitReached()
     {
+        if(isHaveArm)
+        {
+            PickerArms[0].SetActive(false);
+            PickerArms[1].SetActive(false);
+        }
         isPickerMoving = false;
         Invoke("StageControl",2f);
         Collider[] HitColl = Physics.OverlapBox(BallControlObject.transform.position,BallControlObject.transform.localScale/2,
@@ -92,6 +110,11 @@ public class GameManager : MonoBehaviour
             {
                 standCheckPointIndex++;
                 BallCount =0;
+                if(isHaveArm)
+                {
+                    PickerArms[0].SetActive(true);
+                    PickerArms[1].SetActive(true);
+                }
             }
             BallCount=0;
         }
@@ -100,10 +123,20 @@ public class GameManager : MonoBehaviour
             Debug.Log("Lose");
         }
     }
+    public void GetArms()
+    {
+        isHaveArm =true;
+        PickerArms[0].SetActive(true);
+        PickerArms[1].SetActive(true);
+    }
+    public void ActiveBonusBalls(int BonusBallIndex)
+    {
+        BonusBalls[BonusBallIndex].SetActive(true);
+    }
 
-    /*private void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawCube(BallControlObject.transform.position,BallControlObject.transform.localScale);
-    }*/
+        Gizmos.DrawWireCube(BallControlObject.transform.position,BallControlObject.transform.localScale);
+    }
 }
